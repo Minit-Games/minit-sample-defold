@@ -18,6 +18,67 @@ The SDK is a [Defold library dependency](https://github.com/Minit-Games/minit-de
 declared in `game.project`. In the editor use **Project → Fetch Libraries**;
 `tools/build.sh` runs `bob resolve` for you on a fresh checkout.
 
+## Tools and configuration
+
+Everything in `tools/` needs **Node 22 or newer** and a Chromium-based browser.
+There is nothing else to install — the scripts use only Node built-ins.
+
+**The browser.** The audio gate drives a real browser over the DevTools
+protocol, so it needs one present. It takes the first that exists on disk, which
+on most machines means there is nothing to configure:
+
+| OS | Tried, in order |
+|---|---|
+| macOS | Google Chrome, Microsoft Edge, Chromium |
+| Windows | Google Chrome, Microsoft Edge *(Edge ships with Windows)* |
+| Linux | `google-chrome`, `google-chrome-stable`, `chromium`, `chromium-browser`, `microsoft-edge` |
+
+Set `CHROME` to override it with any Chromium build. On macOS and Linux:
+
+```bash
+CHROME="/path/to/chrome" tools/package.sh
+```
+
+and on Windows, from Git Bash (these scripts need bash — see below):
+
+```bash
+CHROME="C:/path/to/msedge.exe" tools/package.sh
+```
+
+If none is found the run stops immediately and lists every path it tried.
+Opera is deliberately *not* tried: it is Chromium, but several builds refuse
+remote debugging and then fail exactly like a missing browser.
+
+### On Windows
+
+The shell scripts need bash, so run `tools/build.sh` and `tools/package.sh`
+under Git Bash or WSL. Every Node script they call runs natively in `cmd` or
+PowerShell:
+
+```
+node tools/check-meta.mjs
+node tools/verify-audio.mjs <built-dir>
+```
+
+Calling `node` directly also sidesteps PowerShell's execution policy, which
+blocks npm's own `npm.ps1` shim with *"running scripts is disabled on this
+system"* — a Windows setting you should not have to weaken.
+
+### Engine location
+
+`tools/build.sh` looks for the Defold editor at
+`/Applications/Defold.app/Contents/Resources` (bob and its bundled JDK live
+inside the install). Override it, and the build variant, with:
+
+| Variable | Default | What it does |
+|---|---|---|
+| `DEFOLD` | `/Applications/Defold.app/Contents/Resources` | Editor install to take `bob` from |
+| `VARIANT` | `release` | `debug` keeps `print()` and Lua errors, which release strips |
+| `OUT` | `dist` | Bundle output directory |
+
+**`tools/*.sh` still need bash**, so on Windows run them under Git Bash or WSL.
+The Node scripts they call (`check-meta.mjs`, `verify-audio.mjs`, `play.mjs`)
+run natively anywhere.
 ## What the game shows you
 
 | Where | What it demonstrates |

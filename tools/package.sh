@@ -82,7 +82,7 @@ unzip -p "$ZIP" index.html | grep -q 'minit-audio' \
 
 # The music is by far the largest single asset; if the conversion silently
 # produced a stub, the bundle would still build and just be quiet.
-music_bytes=$(stat -f%z assets/sound/music.wav)
+music_bytes=$(wc -c < assets/sound/music.wav | tr -d " ")
 if [ "$music_bytes" -lt 200000 ]; then
   echo "assets/sound/music.wav is only $music_bytes bytes - the conversion looks wrong." >&2
   fail=1
@@ -95,7 +95,7 @@ if unzip -p "$ZIP" index.html | grep -qE 'localStorage|sessionStorage'; then
   fail=1
 fi
 
-size_bytes=$(stat -f%z "$ZIP")
+size_bytes=$(wc -c < "$ZIP" | tr -d " ")
 if [ "$size_bytes" -gt 52428800 ]; then
   echo "ZIP is $(( size_bytes / 1048576 )) MB - over Minit's 50 MB hard limit." >&2
   fail=1
