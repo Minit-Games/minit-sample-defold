@@ -1,3 +1,5 @@
+-- Kept identical in minit-template-defold and minit-sample-defold.
+--
 -- Every geometric number in the game, derived from the live viewport.
 --
 -- WHY NOT A DESIGN RESOLUTION. The Minit app gives a game a slot of roughly
@@ -23,10 +25,6 @@ local DISPLAY_H = sys.get_config_int("display.height", 1480)
 
 M.width, M.height = 0, 0
 M.unit = 0          -- the one size everything else is a multiple of
-M.ground_y = 0      -- the grass surface; sky above, soil below
-M.ball_r = 0
-M.ball_x, M.ball_rest_y = 0, 0
-M.timer = { x = 0, y = 0 }
 
 --- Convert an input action's coordinates into world (backbuffer) pixels.
 function M.to_world(x, y)
@@ -42,20 +40,6 @@ function M.refresh()
     -- Tracks the narrow axis but is capped against height, so a very wide slot
     -- does not blow the art up past what fits vertically.
     M.unit = math.min(w / 9, h / 18)
-
-    -- The grass surface sits below the middle, leaving room for the ball to
-    -- bounce into the sky.
-    M.ground_y = h * 0.44
-    M.ball_r = M.unit * 1.15
-    M.ball_x = w * 0.5
-    M.ball_rest_y = M.ground_y + M.ball_r
-
-    -- The clock sits just under the score, so both read as one HUD block.
-    M.timer.x = w * 0.5
-    M.timer.y = 0                             -- set from score_y below
-
-    M.score_y = h - math.min(h * 0.11, M.unit * 2.2)
-    M.timer.y = M.score_y - M.unit * 1.15
     return true
 end
 

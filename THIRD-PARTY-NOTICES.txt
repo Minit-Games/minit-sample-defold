@@ -1,5 +1,5 @@
-Defold Minit Template — third party notices
-===========================================
+Defold Bouncy Ball — third party notices
+========================================
 
 All artwork and all sound effects are generated from source at build time
 (tools/gen-art.mjs and tools/gen-audio.mjs). The only third-party media is the
