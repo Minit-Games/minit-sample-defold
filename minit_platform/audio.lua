@@ -15,7 +15,7 @@
 -- 2. THE HOST OWNS THE OUTPUT GAIN. The app routes every game through a mute
 --    gain it controls, seeded at zero. If its fade-up never lands, the game is
 --    entirely healthy -- context running, engine mixing, buffers queued -- and
---    completely inaudible, with nothing observable from Lua. web/minit.html
+--    completely inaudible, with nothing observable from Lua. minit_platform/minit.html
 --    carries the recovery for that; see the comments there.
 --
 -- Holding all playback until the run starts (set_active) is the third piece: it

@@ -1,6 +1,5 @@
+-- The live viewport, and the one size everything else is a multiple of.
 -- Kept identical in minit-template-defold and minit-sample-defold.
---
--- Every geometric number in the game, derived from the live viewport.
 --
 -- WHY NOT A DESIGN RESOLUTION. The Minit app gives a game a slot of roughly
 -- 2:3 -- much wider relative to its height than a phone screen -- because the

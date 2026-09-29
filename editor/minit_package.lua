@@ -10,7 +10,7 @@
 -- The response holds the printed report, then "=> true" or "=> false".
 --
 -- Everything runs inside the editor -- nothing else to install:
---   1. checks meta.json (the rules of tools/check-meta.mjs) and the title
+--   1. checks meta.json and the title
 --   2. bundles a release HTML5 build with bob, single-threaded wasm only
 --   3. checks the bundle (our shell with the audio repair, no pthread wasm)
 --   4. zips the bundle contents + meta.json (with the game.project title
@@ -19,8 +19,10 @@
 -- dist/ is cleared on every run and the raw bundle (dist/bundle/) is deleted
 -- once zipped, so dist/ only ever holds the one ZIP to upload.
 --
--- Not done here, unlike tools/package.mjs: regenerating assets (they are
--- committed files) and the audio measurement (it needs a real browser).
+-- Not done here: measuring whether the game is audible (it needs a real
+-- browser).
+--
+-- Kept identical in minit-template-defold and minit-sample-defold.
 --
 -- After editing this file: Project > Reload Editor Scripts.
 
@@ -233,7 +235,7 @@ local function check_meta(root, fail, warn)
 		return
 	end
 
-	for _, key in ipairs({ "schemaVersion", "description", "resultSorting" }) do
+	for _, key in ipairs({ "schemaVersion", "resultSorting" }) do
 		if meta[key] == nil then
 			fail("meta.json: missing required field: " .. key)
 		end
@@ -263,18 +265,31 @@ local function check_meta(root, fail, warn)
 		fail("meta.json: " .. key .. " still starts with TODO; players would see it")
 	end
 
-	local parts = {}
+	-- The texts are recommended, not required: one note when any is empty.
+	local parts, missing = {}, false
 	for _, key in ipairs({ "controls", "logic", "description" }) do
-		if type(meta[key]) == "string" and meta[key] ~= "" then
-			parts[#parts + 1] = meta[key]
+		local value = meta[key]
+		if value ~= nil and type(value) ~= "string" then
+			fail(("meta.json: %s must be a string"):format(key))
+		elseif value == nil or not value:find("[^ \t\r\n]") then
+			missing = true
+		else
+			parts[#parts + 1] = value
 		end
+	end
+	if missing then
+		warn("Recommended: add controls, game logic and a description to meta.json. Players see Controls and "
+			.. "Game Logic under How to play (the (i) button under the game) and the description behind Show more; "
+			.. "minit.studio shows '-' until you add them.")
 	end
 	local composed = js_length(table.concat(parts, "\n\n"))
 	if composed > DESCRIPTION_MAX then
-		fail(("meta.json: controls + logic + description is %d chars; the Console cuts it at %d mid-sentence")
-			:format(composed, DESCRIPTION_MAX))
+		fail(("meta.json: controls + logic + description is %d chars; over the %d limit minit.studio trims the "
+			.. "description first, then game logic, then controls. See "
+			.. "https://minit.studio/docs/limits-and-constraints"):format(composed, DESCRIPTION_MAX))
 	elseif composed > DESCRIPTION_MAX - 100 then
-		warn(("meta.json: description is %d chars, close to the %d limit"):format(composed, DESCRIPTION_MAX))
+		warn(("meta.json: controls + logic + description is %d chars, close to the %d limit; over it minit.studio "
+			.. "trims the description first, then game logic, then controls"):format(composed, DESCRIPTION_MAX))
 	end
 	if meta.resultSorting ~= nil and not SORTINGS[meta.resultSorting] then
 		fail(("meta.json: resultSorting \"%s\" is not one of highestScore, lowestScore, fastestTime, slowestTime")
@@ -386,6 +401,13 @@ function M.run()
 	local fail = function(m) problems[#problems + 1] = "FAIL: " .. m end
 	local warn = function(m) notes[#notes + 1] = "note: " .. m end
 	local function result(ok, heading, lines, dist)
+		if not ok and #notes > 0 then
+			-- A failure still shows the notes; on success they are already in lines.
+			lines[#lines + 1] = ""
+			for _, n in ipairs(notes) do
+				lines[#lines + 1] = n
+			end
+		end
 		local text = heading .. "\n\n" .. table.concat(lines, "\n")
 		print(text)
 		return { ok = ok, heading = heading, lines = lines, text = text, dist = dist }

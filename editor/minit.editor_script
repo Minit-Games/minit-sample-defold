@@ -2,6 +2,8 @@
 -- is done in editor/minit_package.lua, which can also run without this
 -- dialog (see there).
 --
+-- Kept identical in minit-template-defold and minit-sample-defold.
+--
 -- After editing either file: Project > Reload Editor Scripts.
 
 local minit_package = require("editor.minit_package")
