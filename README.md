@@ -37,8 +37,9 @@ to read and learn from.
    - References: [meta.json reference](https://minit.studio/docs/meta-json-reference),
      [Writing your description](https://minit.studio/docs/writing-your-description),
      [Limits & Constraints](https://minit.studio/docs/limits-and-constraints).
-7. **Project → Minit: Package for Upload.** It checks everything, lists what is
-   missing, and writes `dist/Defold Bouncy Ball.zip` (emoji are dropped from the
+7. **Project → Minit: Package for Upload.** It validates the metadata and bundle
+   structure and lists what is missing. It does not check gameplay or whether
+   audio is audible, so play-test that yourself. It writes `dist/Defold Bouncy Ball.zip` (emoji are dropped from the
    file name, kept in the uploaded title).
 8. **Upload** that ZIP at minit.studio.
 
