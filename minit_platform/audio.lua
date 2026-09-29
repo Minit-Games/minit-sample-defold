@@ -1,4 +1,4 @@
--- Audio, and the reason this template exists.
+-- Audio, and the part of the template this sample exists to show working.
 --
 -- Sound is the one thing that behaves differently inside the Minit app than it
 -- does in a browser, and it fails silently in both directions. Two facts drive
