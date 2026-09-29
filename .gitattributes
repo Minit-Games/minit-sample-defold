@@ -1,8 +1,7 @@
 # ---------------------------------------------------------------- Line endings
 # Normalise every text file to LF in the repository and on checkout. Git for
-# Windows defaults to core.autocrlf=true, which rewrites tools/*.sh to CRLF on
-# clone; bash then fails with `bad interpreter: /usr/bin/env bash^M`, an error
-# that points at the shell rather than at the checkout that caused it.
+# Windows defaults to core.autocrlf=true, which checks text files out with CRLF
+# and makes every diff and byte-for-byte comparison noisy.
 * text=auto eol=lf
 
 # Batch files are the exception -- cmd.exe wants CRLF.
@@ -50,7 +49,7 @@
 *.script linguist-language=Lua
 *.gui_script linguist-language=Lua
 # ---------------------------------------------------------------- Git LFS
-# Binary assets go to LFS. Not because this template's 540 KB needs it, but
+# Binary assets go to LFS. Not because this sample's 540 KB needs it, but
 # because these files are GENERATED (tools/gen-art.mjs, gen-audio.mjs,
 # gen-music.mjs) and regenerating them is the normal workflow -- git stores a
 # whole new blob for a compressed format every time, so history would grow by

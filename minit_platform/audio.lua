@@ -1,4 +1,4 @@
--- Audio, and the reason this template exists.
+-- Audio, and the part of the template this sample exists to show working.
 --
 -- Sound is the one thing that behaves differently inside the Minit app than it
 -- does in a browser, and it fails silently in both directions. Two facts drive
@@ -15,7 +15,7 @@
 -- 2. THE HOST OWNS THE OUTPUT GAIN. The app routes every game through a mute
 --    gain it controls, seeded at zero. If its fade-up never lands, the game is
 --    entirely healthy -- context running, engine mixing, buffers queued -- and
---    completely inaudible, with nothing observable from Lua. web/minit.html
+--    completely inaudible, with nothing observable from Lua. minit_platform/minit.html
 --    carries the recovery for that; see the comments there.
 --
 -- Holding all playback until the run starts (set_active) is the third piece: it
@@ -87,6 +87,7 @@ end
 function M.music_start()
     if music_playing then return true end
     if not music_enabled then return true end     -- nothing to wait for
+    if not active then return false end           -- the gate is still closed
     if not M.context_running() then return false end
     music_playing = true
     go.set(music_url, "gain", MUSIC_GAIN)

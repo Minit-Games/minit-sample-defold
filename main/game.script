@@ -9,12 +9,12 @@
 --   * minit.loading_done()   -- at the end of init, once the scene is built
 --   * finish()               -- report_result exactly once, with flavor text,
 --                               persisted userData and a delay for the outro
---   * the audio gate         -- see modules/audio.lua and web/minit.html
+--   * the audio gate         -- see minit_platform/audio.lua and minit_platform/minit.html
 --   * layout.refresh()       -- no design resolution; rebuild from the viewport
 
 local minit  = require("minit.minit")
-local layout = require("modules.layout")
-local audio  = require("modules.audio")
+local layout = require("minit_platform.layout")
+local audio  = require("minit_platform.audio")
 local ui     = require("modules.ui")
 
 local FONT_PX = 52          -- the size assets/fonts/game.font is baked at
@@ -27,6 +27,34 @@ local GRAVITY = 30          -- units/s^2
 local TAP_IMPULSE = 13      -- units/s, straight up
 local BOUNCE_DAMP = 0.62    -- energy kept on each landing
 local REST_SPEED = 1.4      -- below this the ball stops rather than jittering
+
+-- ---------------------------------------------------------------- geometry
+
+-- This game's own geometry, derived from the viewport that minit_platform/layout.lua
+-- tracks (width, height, unit). Recomputed whenever layout.refresh() reports a change.
+local field = {
+    ground_y = 0,      -- the grass surface; sky above, soil below
+    ball_r = 0,
+    ball_x = 0, ball_rest_y = 0,
+    timer = { x = 0, y = 0 },
+    score_y = 0,
+}
+
+local function measure()
+    local w, h, u = layout.width, layout.height, layout.unit
+
+    -- The grass surface sits below the middle, leaving room for the ball to
+    -- bounce into the sky.
+    field.ground_y = h * 0.44
+    field.ball_r = u * 1.15
+    field.ball_x = w * 0.5
+    field.ball_rest_y = field.ground_y + field.ball_r
+
+    -- The clock sits just under the score, so both read as one HUD block.
+    field.timer.x = w * 0.5
+    field.score_y = h - math.min(h * 0.11, u * 2.2)
+    field.timer.y = field.score_y - u * 1.15
+end
 
 -- ------------------------------------------------------------------ config
 
@@ -80,14 +108,14 @@ local function relayout(self)
 
     self.sky:pos(w * 0.5, h * 0.5):scale(w / 8, h / 256)
     -- The ground fills everything below the grass line.
-    self.ground:pos(w * 0.5, layout.ground_y * 0.5):scale(w / 8, layout.ground_y / 256)
+    self.ground:pos(w * 0.5, field.ground_y * 0.5):scale(w / 8, field.ground_y / 256)
     local tile_w = u * 1.7
     local tile_s = tile_w / 128                    -- uniform: blades keep their shape
     local tile_h = 40 * tile_s
     local tiles = math.min(#self.turf, math.ceil(w / tile_w) + 1)
     for i, tile in ipairs(self.turf) do
         if i <= tiles then
-            tile:show(true):pos((i - 0.5) * tile_w, layout.ground_y + tile_h * 0.15)
+            tile:show(true):pos((i - 0.5) * tile_w, field.ground_y + tile_h * 0.15)
                 :scale(tile_s, tile_s)
         else
             tile:show(false)
@@ -96,9 +124,9 @@ local function relayout(self)
 
     self.dim:pos(w * 0.5, h * 0.5):scale(w / 8, h / 8)
 
-    self.score:pos(w * 0.5, layout.score_y)
-    self.timer:pos(layout.timer.x, layout.timer.y):scale(fit("0:00", w * 0.34, u * 0.8))
-    self.hint:pos(w * 0.5, layout.timer.y - u * 1.05):scale(fit("TAP THE BALL", w * 0.7, u * 0.5))
+    self.score:pos(w * 0.5, field.score_y)
+    self.timer:pos(field.timer.x, field.timer.y):scale(fit("0:00", w * 0.34, u * 0.8))
+    self.hint:pos(w * 0.5, field.timer.y - u * 1.05):scale(fit("TAP THE BALL", w * 0.7, u * 0.5))
 
     self:refresh_score()
 end
@@ -141,7 +169,7 @@ local function finish(self)
     -- slot, where there is much less sky above the grass line.
     local w, h, u = layout.width, layout.height, layout.unit
     local line = flavour(self)
-    local ball_top = layout.ball_rest_y + layout.ball_r
+    local ball_top = field.ball_rest_y + field.ball_r
 
     local cap_s   = fit(line, w * 0.88, u * 0.46)
     local score_s = fit(self.score_value, w * 0.8, u * 2.4)
@@ -185,8 +213,9 @@ function init(self)
     ui.init("#quadfactory", "#textfactory", "#barfactory")
 
     layout.refresh()
+    measure()
     build(self)
-    self.ball_y = layout.ball_rest_y
+    self.ball_y = field.ball_rest_y
     self.refresh_score = function() set_score(self, self.score_value) end
     relayout(self)
     set_score(self, 0)
@@ -199,8 +228,8 @@ local function land(self, impact)
     audio.play("bounce", { speed = 0.9 + math.min(0.35, impact * 0.02) })
     self.squash = math.min(0.34, 0.1 + impact * 0.016)
     -- One puff node, restarted on each landing.
-    local s = layout.ball_r * 1.5 / 96
-    self.puff:show(true):pos(layout.ball_x, layout.ground_y + layout.ball_r * 0.35)
+    local s = field.ball_r * 1.5 / 96
+    self.puff:show(true):pos(field.ball_x, field.ground_y + field.ball_r * 0.35)
     self.puff:cancel("scale")
     go.set_scale(vmath.vector3(s * 0.4, s * 0.4, 1), self.puff.url)
     self.puff:animate_go("scale", vmath.vector3(s, s, 1), go.EASING_OUTQUAD, 0.34)
@@ -216,7 +245,10 @@ function update(self, dt)
     -- 30 second round measurably overruns.
     local tick = math.min(dt, 0.5)
     dt = math.min(dt, 0.05)                   -- never let a stalled tab deliver one huge step
-    if layout.refresh() then relayout(self) end
+    if layout.refresh() then
+        measure()
+        relayout(self)
+    end
 
     -- Counts from the moment the game is interactive, not from the first tap:
     -- a run has to end on its own, or a player who never touches the ball
@@ -234,7 +266,7 @@ function update(self, dt)
     end
 
     -- Keep asking until the audio context is genuinely running, so the loop
-    -- always begins at its beginning. See modules/audio.lua.
+    -- always begins at its beginning. See minit_platform/audio.lua.
     if self.started and not self.music_started then
         self.music_retry = self.music_retry - dt
         if self.music_retry <= 0 then
@@ -243,7 +275,7 @@ function update(self, dt)
         end
     end
 
-    local u, rest = layout.unit, layout.ball_rest_y
+    local u, rest = layout.unit, field.ball_rest_y
 
     -- Physics keeps running after the run ends, so the ball settles instead of
     -- freezing in mid-air. The result card is anchored above the ball's RESTING
@@ -265,14 +297,14 @@ function update(self, dt)
     -- landing mid-bounce simply replaces it.
     self.squash = self.squash * math.max(0, 1 - dt * 7)
 
-    local base = layout.ball_r * 2 / 176      -- the ball sprite is 176px across
-    self.ball:pos(layout.ball_x, self.ball_y)
+    local base = field.ball_r * 2 / 176       -- the ball sprite is 176px across
+    self.ball:pos(field.ball_x, self.ball_y)
         :scale(base * (1 + self.squash), base * (1 - self.squash))
 
     -- The shadow shrinks and fades as the ball climbs.
     local lift = math.max(0, (self.ball_y - rest) / (u * 4))
-    local ss = layout.ball_r * 2.1 / 192 * math.max(0.35, 1 - lift * 0.5)
-    self.shadow:pos(layout.ball_x, layout.ground_y - layout.unit * 0.05):scale(ss, ss * 0.6)
+    local ss = field.ball_r * 2.1 / 192 * math.max(0.35, 1 - lift * 0.5)
+    self.shadow:pos(field.ball_x, field.ground_y - layout.unit * 0.05):scale(ss, ss * 0.6)
     self.shadow:tint(vmath.vector4(1, 1, 1, math.max(0.15, 0.75 - lift * 0.45)))
 end
 
@@ -294,8 +326,8 @@ function on_input(self, action_id, action)
 
         -- Generous hit area: a near miss that reads as a hit is a better
         -- failure than a hit that reads as a miss.
-        local dx, dy = wx - layout.ball_x, wy - self.ball_y
-        if dx * dx + dy * dy <= (layout.ball_r * 1.35) ^ 2 then
+        local dx, dy = wx - field.ball_x, wy - self.ball_y
+        if dx * dx + dy * dy <= (field.ball_r * 1.35) ^ 2 then
             if not self.started then
                 -- The first tap is also the gesture that lets the browser (and
                 -- the Minit app's WebView) resume audio, so nothing plays
