@@ -22,8 +22,10 @@ to read and learn from.
 
 1. **Get the project.** Download ZIP or clone this repo, then in Defold:
    **Open From Disk** → `game.project`.
-2. **Project → Fetch Libraries.** A `minit` folder appears (the
-   [Minit SDK](https://github.com/Minit-Games/minit-defold), declared in `game.project`).
+2. **Project → Fetch Libraries.** The
+   [Minit SDK](https://github.com/Minit-Games/minit-defold), declared in `game.project`,
+   downloads as a `minit` folder under **Dependencies** in Defold's Assets pane, not into
+   your project folder. Quick check: press Ctrl+P and type `minit.lua`.
 3. **Build** or **Build HTML5** to play. Audio unlocks on the first tap.
 4. **The name** is in Project Settings → **Title** (`Defold Bouncy Ball 🏐🌱`).
    Players see it.
@@ -42,6 +44,7 @@ to read and learn from.
    audio is audible, so play-test that yourself. It writes `dist/Defold Bouncy Ball.zip` (emoji are dropped from the
    file name, kept in the uploaded title).
 8. **Upload** that ZIP at minit.studio.
+9. **Test on your phone:** on the game's page in minit.studio, click the QR button in the Live preview panel, then Generate preview link, and scan the code. With the Minit app installed, the game opens in the app; without it, it plays on a web page with links to download the app. The link works for 15 minutes. See [Testing Your Game on Device](https://minit.studio/docs/sharing-a-preview-link).
 
 ## Don't edit `minit_platform/`
 
