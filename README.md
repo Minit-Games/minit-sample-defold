@@ -50,7 +50,7 @@ to read and learn from.
 
 - It makes the game behave inside the Minit app: audio, the viewport layout, touch mapping.
 - Files: `audio.lua`, `layout.lua`, `minit.render`, `minit.render_script`,
-  `game.input_binding`, `minit.html`.
+  `game.input_binding`.
 - Game code goes in `main/` and `modules/`.
 
 ## What the game shows you
@@ -65,20 +65,20 @@ to read and learn from.
 | `minit_platform/layout.lua` | No design resolution: every number derived from the live viewport. |
 | `modules/ui.lua` | Small helpers over the quad / nine-slice / text factories. |
 | `meta.json` | The three config keys the game reads, plus store copy and credits. |
-| `editor/minit_package.lua` | The packaging menu item. Also callable over the editor's HTTP `/eval` — see its header. |
+| `minit/editor/minit_package.lua` (SDK dependency) | The packaging menu item. Also callable over the editor's HTTP `/eval` with `return require("minit.editor.minit_package").run().ok` — see its header. |
 
 ## Audio inside the app
 
 Sound is the one thing that behaves differently inside the Minit app than in a
-browser, and it fails **silently in both directions**. `minit_platform/` already
-handles it; the pieces are load-bearing.
+browser, and it fails **silently in both directions**. `minit_platform/` and the
+SDK's HTML shell (`minit/minit.html`) already handle it; the pieces are load-bearing.
 
 - **The host's volume message can be discarded.**
   - The app sends volume with `window.postMessage(payload, window.location.origin)`.
   - On iOS the game is served from a custom scheme with an opaque origin, so
     `location.origin` is `"null"` and `postMessage` throws.
   - The game then only sees the volume seeded at mount time, often `0`: healthy but inaudible.
-  - `minit.html` retries a rejected same-window message with `'*'`, so the host's
+  - `minit/minit.html` retries a rejected same-window message with `'*'`, so the host's
     real intent (including a deliberate mute) flows through.
 - **Defold discards audio while its context is suspended.**
   - A loop started too early does not queue: its opening is gone.
@@ -86,7 +86,7 @@ handles it; the pieces are load-bearing.
     retries four times a second until it takes.
 - **The host owns the output gain.**
   - It fades a mute gain up; if that fade does not land, the game is healthy and inaudible.
-  - `minit.html` resumes a suspended context on gestures, visibility/focus
+  - `minit/minit.html` resumes a suspended context on gestures, visibility/focus
     changes and a watchdog, and re-applies the host's own target volume.
   - It never touches the gain when the host has deliberately muted or ducked.
 - **Nothing plays before the game starts.** `audio.set_active(true)` runs on the
