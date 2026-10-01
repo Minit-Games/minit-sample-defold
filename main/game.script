@@ -9,7 +9,7 @@
 --   * minit.loading_done()   -- at the end of init, once the scene is built
 --   * finish()               -- report_result exactly once, with flavor text,
 --                               persisted userData and a delay for the outro
---   * the audio gate         -- see minit_platform/audio.lua and minit_platform/minit.html
+--   * the audio gate         -- see minit_platform/audio.lua and the SDK's minit/minit.html
 --   * layout.refresh()       -- no design resolution; rebuild from the viewport
 
 local minit  = require("minit.minit")
