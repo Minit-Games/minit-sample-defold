@@ -114,7 +114,7 @@ SDK's HTML shell (`minit/minit.html`) already handle it; the pieces are load-bea
 
 - `[input] use_accelerometer` is off: the platform forbids device hardware, and it defaults to on.
 - `[display] update_frequency = 60` caps the frame rate.
-- `[graphics] texture_profiles` compresses textures through the SDK's profile; files under an `uncompressed/` folder stay uncompressed.
+- `[graphics] texture_profiles` compresses textures through the SDK's profile; atlases under an `uncompressed/` folder stay uncompressed (the `.atlas` file's folder counts, not its images').
 - A custom HTML5 shell **must** keep an element with id `app-container`;
   `dmloader.js`'s resize callback sets `.style` on it and throws otherwise.
 - The bundle loads its own `archive/` payload over `XMLHttpRequest` from inside
