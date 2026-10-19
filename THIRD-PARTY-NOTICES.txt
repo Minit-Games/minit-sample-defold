@@ -1,9 +1,11 @@
 Defold Bouncy Ball — third party notices
 ========================================
 
+The music and the Titan One font below keep their own licences (CC0 1.0, SIL OFL 1.1); everything else in this repository is under LICENSE.
+
 All artwork and all sound effects are generated from source at build time
-(tools/gen-art.mjs and tools/gen-audio.mjs). The only third-party media is the
-background music track below.
+(tools/gen-art.mjs and tools/gen-audio.mjs). The only third-party media are the
+background music track and the Titan One font below.
 
 
 Background music
