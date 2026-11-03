@@ -107,7 +107,6 @@ end
 
 local function relayout(self)
     local w, h, u = layout.width, layout.height, layout.unit
-    self.laid_out_w, self.laid_out_h = w, h
 
     -- Centred on the window, the zoom-1 Fixed camera keeps world (0,0) at the
     -- bottom-left and one world unit per backbuffer pixel.
@@ -252,10 +251,7 @@ function update(self, dt)
     -- 30 second round measurably overruns.
     local tick = math.min(dt, 0.5)
     dt = math.min(dt, 0.05)                   -- never let a stalled tab deliver one huge step
-    -- layout.to_world() refreshes too and swallows the change flag, so compare
-    -- against the size last laid out instead of trusting refresh()'s result.
-    layout.refresh()
-    if layout.width ~= self.laid_out_w or layout.height ~= self.laid_out_h then
+    if layout.refresh() then
         measure()
         relayout(self)
     end
