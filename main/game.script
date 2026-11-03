@@ -19,6 +19,8 @@ local ui     = require("modules.ui")
 
 local FONT_PX = 52          -- the size assets/fonts/game.font is baked at
 local END_DELAY = 0.9       -- seconds the host waits before its result screen
+local CAMERA = "/camera"
+local CAMERA_COMPONENT = "/camera#camera"
 
 -- Motion is expressed in layout units, not pixels, so the ball behaves the same
 -- on every viewport.
@@ -31,7 +33,7 @@ local REST_SPEED = 1.4      -- below this the ball stops rather than jittering
 -- ---------------------------------------------------------------- geometry
 
 -- This game's own geometry, derived from the viewport that minit_platform/layout.lua
--- tracks (width, height, unit). Recomputed whenever layout.refresh() reports a change.
+-- tracks (width, height, unit). Recomputed whenever the window size changes.
 local field = {
     ground_y = 0,      -- the grass surface; sky above, soil below
     ball_r = 0,
@@ -105,6 +107,10 @@ end
 
 local function relayout(self)
     local w, h, u = layout.width, layout.height, layout.unit
+
+    -- Centred on the window, the zoom-1 Fixed camera keeps world (0,0) at the
+    -- bottom-left and one world unit per backbuffer pixel.
+    go.set_position(vmath.vector3(w * 0.5, h * 0.5, 0), CAMERA)
 
     self.sky:pos(w * 0.5, h * 0.5):scale(w / 8, h / 256)
     -- The ground fills everything below the grass line.
@@ -322,7 +328,7 @@ function on_input(self, action_id, action)
     end
 
     for _, p in ipairs(points) do
-        local wx, wy = layout.to_world(p.x, p.y)
+        local wx, wy = layout.to_world(p.x, p.y, CAMERA_COMPONENT)
 
         -- Generous hit area: a near miss that reads as a hit is a better
         -- failure than a hit that reads as a miss.

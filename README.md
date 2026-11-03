@@ -46,11 +46,11 @@ to read and learn from.
 8. **Upload** that ZIP at minit.studio.
 9. **Test on your phone:** on the game's page in minit.studio, click the QR button in the Live preview panel, then Generate preview link, and scan the code. With the Minit app installed, the game opens in the app; without it, it plays on a web page with links to download the app. The link works for 15 minutes. See [Testing Your Game on Device](https://minit.studio/docs/sharing-a-preview-link).
 
-## Don't edit `minit_platform/`
+## Don't edit `minit_platform/audio.lua`
 
-- It makes the game behave inside the Minit app: audio, the viewport layout, touch mapping.
-- Files: `audio.lua`, `layout.lua`, `minit.render`, `minit.render_script`,
-  `game.input_binding`.
+- It makes audio play and stay audible inside the Minit app.
+- `minit_platform/` also holds `layout.lua` (window size and the tap helper) and `game.input_binding`.
+- `layout.lua` and the camera in `main/main.collection` are defaults you may change.
 - Game code goes in `main/` and `modules/`.
 
 ## What the game shows you
@@ -62,7 +62,8 @@ to read and learn from.
 | `main/game.script` → `finish()` | `minit.report_result()` **exactly once**, with `flavor_text`, a persisted `user_data`, and a `delay` so the outro is seen. |
 | `main/game.script` → `init()` | `minit.get_user_data()` read back as the player's previous best. |
 | `minit_platform/audio.lua` | The audio rules that matter inside the app. Read this before touching sound. |
-| `minit_platform/layout.lua` | No design resolution: every number derived from the live viewport. |
+| `minit_platform/layout.lua` | The live window size every number derives from, and `to_world()` for taps through the camera. |
+| `main/main.collection` → `camera` | A Fixed camera at zoom 1, centred on the window by `relayout()`: one world unit is one backbuffer pixel. |
 | `modules/ui.lua` | Small helpers over the quad / nine-slice / text factories. |
 | `meta.json` | The three config keys the game reads, plus store copy and credits. |
 | `minit/editor/minit_package.lua` (SDK dependency) | The packaging menu item. Also callable over the editor's HTTP `/eval` with `return require("minit.editor.minit_package").run().ok` — see its header. |
@@ -95,8 +96,9 @@ SDK's HTML shell (`minit/minit.html`) already handle it; the pieces are load-bea
 ## Two more things that are not obvious
 
 - **There is no design resolution.**
-  - The render script projects `0..window_width` by `0..window_height`; a world
-    unit is a backbuffer pixel, and `layout.lua` rebuilds from `window.get_size()` on change.
+  - Defold's built-in render script draws through a Fixed camera at zoom 1, centred
+    on the window, so world `0..window_width` by `0..window_height` fills the screen
+    and a world unit is a backbuffer pixel; the game rebuilds from `window.get_size()` on change.
   - The app's game slot is roughly **2:3**, far wider relative to its height than
     a phone screen (it sits between the app's header and toolbar).
   - A game drawn to a fixed design width leaves a band down one side, invisible
@@ -108,7 +110,7 @@ SDK's HTML shell (`minit/minit.html`) already handle it; the pieces are load-bea
   - `action.x/y` and every `action.touch[i].x/y` are the normalised position times
     the `game.project` display size: a stretch mapping that ignores the real aspect ratio.
   - Touch entries carry only `x`/`y`; there is no per-finger `screen_x`.
-  - `layout.to_world()` does the conversion; `on_input` handles a touch list and a mouse.
+  - `layout.to_world(x, y, "/camera#camera")` converts through the camera; `on_input` handles a touch list and a mouse.
 
 ## Platform notes
 
