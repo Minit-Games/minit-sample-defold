@@ -1,11 +1,7 @@
 -- Thin wrappers over the generic quad, 9-slice and label prototypes.
 --
 -- The whole interface is world-space sprites and labels rather than a .gui
--- scene. Defold's GUI positions nodes against a fixed design resolution and
--- reconciles the difference with per-node adjust modes; this game deliberately
--- has no design resolution, so a GUI would mean fighting the one system that
--- assumes one. Sprites and labels share the world's coordinate space, which is
--- backbuffer pixels, and so need no reconciliation at all.
+-- scene, by choice: they share the world's coordinate space with the game.
 
 local M = {}
 
